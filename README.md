@@ -2,10 +2,7 @@
 
 ## Overview
 
-This script processes PDF files by:
-1. Splitting them into individual pages.
-2. Extracting names from the first page of each PDF.
-3. Renaming the files based on the extracted names with a specified prefix.
+The PDF Split App separates PDF files into individual pages, identifies text patterns, and renames the files accordingly, storing them in the `result` folder.
 
 ## Requirements
 
@@ -29,33 +26,74 @@ pip install PyPDF2 pdfplumber
 
 ### Running the Script
 
+Add PDFs to the `input` folder.
+
+Run the script in your terminal:
+
 ```bash
-python script_name.py --input_folder <input_folder> --prefix <file_prefix>
+python pdf_processor.py --input_folder <path/to/input> --prefix <your_prefix>
 ```
 
 ### Example
 
 ```bash
-python script_name.py --input_folder input --prefix renamed
+python pdf_processor.py --input_folder input --prefix renamed
 ```
 
-## Functions
+Processed files will appear in the `result` folder.
 
-### `split_pdf(path, output_folder)`
+## Code Explanation
 
-Splits a PDF into individual pages and saves them in the specified output folder.
+### Script Logic
 
-### `extract_names_from_pdfs(input_folder)`
+#### 1. Split PDF Files
 
-Extracts names from the first page of each PDF in the input folder using a regex pattern and returns a dictionary of filenames and extracted names.
+The `split_pdf(path, output_folder)` function:
+- **Creates an output directory** if it doesn't exist.
+- **Splits each page** of the input PDF into separate PDF files.
+- **Saves each page** as a new PDF file in the specified output folder.
 
-### `rename_files(names_dict, source_folder, file_prefix)`
+#### 2. Extract Names from PDFs
 
-Renames PDF files in the source folder based on the extracted names and given prefix.
+The `extract_names_from_pdfs(input_folder)` function:
+- **Searches for a specific pattern** (`DISTRIBUTION NOTICE...Dear`) in the text of the first page of each PDF.
+- **Extracts the text** between `DISTRIBUTION NOTICE` and `Dear`.
+- **Returns a dictionary** with the filenames as keys and the extracted names as values.
 
-### `main(input_folder, file_prefix)`
+#### 3. Rename PDF Files
 
-Main function that orchestrates the PDF splitting, name extraction, and file renaming.
+The `rename_files(names_dict, source_folder, file_prefix)` function:
+- **Iterates through the dictionary** of extracted names.
+- **Sanitizes the extracted names** to ensure they are safe for filenames.
+- **Renames the split PDF files** in the source folder using the sanitized names and the given prefix.
+
+### Main Function
+
+The `main(input_folder, file_prefix)` function:
+- **Ensures the input folder** contains PDF files.
+- **Splits each PDF** into separate pages by calling `split_pdf`.
+- **Extracts names** from these pages by calling `extract_names_from_pdfs`.
+- **Renames the split files** using the extracted names by calling `rename_files`.
+
+### Argument Parsing
+
+The script uses `argparse` to accept `input_folder` and `prefix` as command-line arguments:
+
+```python
+if __name__ == "__main__":
+    parser = argparse.ArgumentParser(description="PDF Processing")
+    parser.add_argument("--input_folder", default="input", help="Directory with input PDF files")
+    parser.add_argument("--prefix", required=True, help="Prefix for the output files")
+    args = parser.parse_args()
+
+    main(args.input_folder, args.prefix)
+```
+
+## Limitations
+
+- **Text Extraction**: It extracts the text appearing between "DISTRIBUTION NOTICE" and "Dear". This method is not very robust, so ensure the name you want for the file is contained exactly between these two strings.
+- **File Overwrites**: Possible file overwrites with identical names.
+- **Error Handling**: Limited error handling.
 
 ## License
 
